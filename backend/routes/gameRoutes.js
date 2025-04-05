@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
 
 // GET all games with optional filters and sorting
 router.get('/api/games', async (req, res) => {
+  const db = req.app.locals.db;
   try {
     const { search, genre, minPrice, maxPrice, page = 1, limit = 5, sort } = req.query;
     let query = 'SELECT * FROM Game WHERE 1=1';
@@ -47,105 +47,110 @@ router.get('/api/games', async (req, res) => {
   }
 });
 
-// GET /api/users/:userId/lists
-  router.get('/api/users/:userId/lists', (req, res) => {
-      const { userId } = req.params;
-    
-      const query = `
-        SELECT 
-          pl.ListID,
-          pl.ListName,
-          g.GameID,
-          g.Title,
-          g.Description,
-          g.Rating,
-          g.Price,
-          g.Genre,
-          g.ReleaseDate
-        FROM PersonalizedList pl
-        LEFT JOIN GameList gl ON pl.ListID = gl.ListID
-        LEFT JOIN Game_Included_in_GameList gigl ON gl.GameListID = gigl.GameListID
-        LEFT JOIN Game g ON gigl.GameID = g.GameID
-        WHERE pl.UserID = ?
-        ORDER BY pl.ListID, g.Title
-      `;
-    
-    db.query(query, [userId], (err, results) => {
-      if (err) {
-        console.error('Error fetching user lists:', err);
-        return res.status(500).json({ error: 'Failed to fetch lists' });
-      }
-  
-      // Group games under each list
-      const lists = {};
-      results.forEach(row => {
-        if (!lists[row.ListID]) {
-          lists[row.ListID] = {
-            ListID: row.ListID,
-            ListName: row.ListName,
-            Games: []
-          };
-        }
-  
-        if (row.GameID) {
-          lists[row.ListID].Games.push({
-            GameID: row.GameID,
-            Title: row.Title,
-            Description: row.Description,
-            Rating: row.Rating,
-            Price: row.Price,
-            Genre: row.Genre,
-            ReleaseDate: row.ReleaseDate
-          });
-        }
-      });
-  
-      res.json(Object.values(lists));
-    });
-  });
+// GET user lists
+router.get('/api/users/:userId/lists', (req, res) => {
+  const db = req.app.locals.db;
+  const { userId } = req.params;
 
-  // POST /api/users/:userId/lists
-router.post('/api/users/:userId/lists', (req, res) => {
-    const { userId } = req.params;
-    const { listName } = req.body;
-  
-    const insertList = `INSERT INTO PersonalizedList (UserID, ListName) VALUES (?, ?)`;
-  
-    db.query(insertList, [userId, listName], (err, result) => {
-      if (err) return res.status(500).json({ error: 'Error creating list' });
-  
-      const listId = result.insertId;
-  
-      const createGameList = `INSERT INTO GameList (ListID, GameCount) VALUES (?, 0)`;
-  
-      db.query(createGameList, [listId], (err2) => {
-        if (err2) return res.status(500).json({ error: 'List created but failed to initialize GameList' });
-  
-        res.json({ message: 'List created successfully', listId });
-      });
-    });
-  });
+  const query = `
+    SELECT 
+      pl.ListID,
+      pl.ListName,
+      g.GameID,
+      g.Title,
+      g.Description,
+      g.Rating,
+      g.Price,
+      g.Genre,
+      g.ReleaseDate
+    FROM PersonalizedList pl
+    LEFT JOIN GameList gl ON pl.ListID = gl.ListID
+    LEFT JOIN Game_Included_in_GameList gigl ON gl.GameListID = gigl.GameListID
+    LEFT JOIN Game g ON gigl.GameID = g.GameID
+    WHERE pl.UserID = ?
+    ORDER BY pl.ListID, g.Title
+  `;
 
-  router.get("/search", async (req, res) => {
-    const query = req.query.query;
-  
-    if (!query) return res.json({ success: false, message: "Empty query" });
-  
-    try {
-      const [games] = await db.promise().query(
-        "SELECT GameID, Title AS GameName FROM Game WHERE Title LIKE ?",
-        [`%${query}%`]
-      );
-  
-      res.json({ success: true, games });
-    } catch (err) {
-      console.error("Search error:", err);
-      res.status(500).json({ success: false, message: "Search failed" });
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching user lists:', err);
+      return res.status(500).json({ error: 'Failed to fetch lists' });
     }
+
+    // Group games under each list
+    const lists = {};
+    results.forEach(row => {
+      if (!lists[row.ListID]) {
+        lists[row.ListID] = {
+          ListID: row.ListID,
+          ListName: row.ListName,
+          Games: []
+        };
+      }
+
+      if (row.GameID) {
+        lists[row.ListID].Games.push({
+          GameID: row.GameID,
+          Title: row.Title,
+          Description: row.Description,
+          Rating: row.Rating,
+          Price: row.Price,
+          Genre: row.Genre,
+          ReleaseDate: row.ReleaseDate
+        });
+      }
+    });
+
+    res.json(Object.values(lists));
   });
-  
+});
+
+// POST create new list
+router.post('/api/users/:userId/lists', (req, res) => {
+  const db = req.app.locals.db;
+  const { userId } = req.params;
+  const { listName } = req.body;
+
+  const insertList = `INSERT INTO PersonalizedList (UserID, ListName) VALUES (?, ?)`;
+
+  db.query(insertList, [userId, listName], (err, result) => {
+    if (err) return res.status(500).json({ error: 'Error creating list' });
+
+    const listId = result.insertId;
+
+    const createGameList = `INSERT INTO GameList (ListID, GameCount) VALUES (?, 0)`;
+
+    db.query(createGameList, [listId], (err2) => {
+      if (err2) return res.status(500).json({ error: 'List created but failed to initialize GameList' });
+
+      res.json({ message: 'List created successfully', listId });
+    });
+  });
+});
+
+// GET search for games
+router.get("/api/search", async (req, res) => {
+  const db = req.app.locals.db;
+  const query = req.query.query;
+
+  if (!query) return res.json({ success: false, message: "Empty query" });
+
+  try {
+    const [games] = await db.promise().query(
+      "SELECT GameID, Title AS GameName FROM Game WHERE Title LIKE ?",
+      [`%${query}%`]
+    );
+
+    res.json({ success: true, games });
+  } catch (err) {
+    console.error("Search error:", err);
+    res.status(500).json({ success: false, message: "Search failed" });
+  }
+});
+
 // POST new game
-router.post('/games', (req, res) => {
+router.post('/api/games', (req, res) => {
+  const db = req.app.locals.db;
   const { Title, Description, Rating, Price, Genre, ReleaseDate } = req.body;
 
   if (!Title || !Price) {
@@ -170,7 +175,9 @@ router.post('/games', (req, res) => {
   );
 });
 
+// GET list details
 router.get('/api/lists/:listId', (req, res) => {
+  const db = req.app.locals.db;
   const { listId } = req.params;
 
   const query = `
@@ -224,9 +231,10 @@ router.get('/api/lists/:listId', (req, res) => {
     });
   });
 });
-// POST /api/lists/:listId/add-game
-// POST /api/lists/:listId/add-game
+
+// POST add game to list
 router.post('/api/lists/:listId/add-game', (req, res) => {
+  const db = req.app.locals.db;
   const { listId } = req.params;
   const { gameId } = req.body;
 
@@ -245,7 +253,7 @@ router.post('/api/lists/:listId/add-game', (req, res) => {
 
     if (results.length === 0) {
       // Auto-create GameList if not present
-      const createGameListQuery = `INSERT INTO GameList (ListID) VALUES (?)`;
+      const createGameListQuery = `INSERT INTO GameList (ListID, GameCount) VALUES (?, 0)`;
       db.query(createGameListQuery, [listId], (insertErr, insertResult) => {
         if (insertErr) {
           console.error("Error creating GameList:", insertErr);
@@ -253,11 +261,11 @@ router.post('/api/lists/:listId/add-game', (req, res) => {
         }
 
         const newGameListId = insertResult.insertId;
-        return insertGameIntoList(newGameListId);
+        insertGameIntoList(newGameListId);
       });
     } else {
       const existingGameListId = results[0].GameListID;
-      return insertGameIntoList(existingGameListId);
+      insertGameIntoList(existingGameListId);
     }
   });
 
@@ -273,15 +281,18 @@ router.post('/api/lists/:listId/add-game', (req, res) => {
         console.error("Error inserting game into list:", err);
         return res.status(500).json({ success: false, message: 'Could not add game to list' });
       }
+      
+      // Update game count
+      db.query("UPDATE GameList SET GameCount = GameCount + 1 WHERE GameListID = ?", [gameListId]);
 
       return res.json({ success: true, message: 'Game successfully added to list' });
     });
   }
 });
 
-// DELETE /api/lists/:listId/games
-// DELETE /api/lists/:listId/games
+// DELETE remove game from list
 router.delete('/api/lists/:listId/games', (req, res) => {
+  const db = req.app.locals.db;
   const { listId } = req.params;
   const { gameName } = req.body;
 
@@ -290,7 +301,7 @@ router.delete('/api/lists/:listId/games', (req, res) => {
   }
 
   // First: Get the GameID from the game name
-  const getGameIdQuery = `SELECT GameID FROM Game WHERE Title = ?`;  // Updated from GameName to Title
+  const getGameIdQuery = `SELECT GameID FROM Game WHERE Title = ?`;
   db.query(getGameIdQuery, [gameName], (err, gameResults) => {
     if (err || gameResults.length === 0) {
       return res.status(404).json({ success: false, message: "Game not found" });
@@ -321,14 +332,19 @@ router.delete('/api/lists/:listId/games', (req, res) => {
         if (deleteResult.affectedRows === 0) {
           return res.status(404).json({ success: false, message: "Game not in list" });
         }
+        
+        // Update game count
+        db.query("UPDATE GameList SET GameCount = GameCount - 1 WHERE GameListID = ?", [gameListId]);
 
         return res.json({ success: true, message: "Game removed from list" });
       });
     });
   });
 });
-// DELETE /api/lists/:listId
+
+// DELETE entire list
 router.delete('/api/lists/:listId', (req, res) => {
+  const db = req.app.locals.db;
   const { listId } = req.params;
 
   // Delete Game_Included_in_GameList entries first
@@ -363,10 +379,5 @@ router.delete('/api/lists/:listId', (req, res) => {
     });
   });
 });
-
-
-
-// In routes or server.js
-
 
 module.exports = router;

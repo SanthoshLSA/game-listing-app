@@ -7,14 +7,10 @@ require("dotenv").config();
 
 const app = express();
 const port = 3001;
-// Optional: Game routes
-const gameRoutes = require('./routes/gameRoutes');
-app.use('/', gameRoutes);
-
 
 // Middleware
 app.use(cors({
-  origin: "http://localhost:3001", // your frontend port
+  origin: "http://localhost:3000", // Changed to frontend port
   credentials: true
 }));
 app.use(express.json());
@@ -43,6 +39,13 @@ db.connect((err) => {
     console.log("Connected to MySQL Database");
   }
 });
+
+// Make db available to routes
+app.locals.db = db;
+
+// Optional: Game routes
+const gameRoutes = require('./routes/gameRoutes');
+app.use('/', gameRoutes);
 
 // Test route
 app.get("/", (req, res) => {
@@ -114,23 +117,8 @@ app.post("/api/register", (req, res) => {
     });
   });
 });
-app.get("/api/search", async (req, res) => {
-  const query = req.query.query;
 
-  if (!query) return res.json({ success: false, message: "Empty query" });
-
-  try {
-    const [games] = await db.promise().query(
-      "SELECT GameID, Title AS GameName FROM Game WHERE Title LIKE ?",
-      [`%${query}%`]
-    );
-
-    res.json({ success: true, games });
-  } catch (err) {
-    console.error("Search error:", err);
-    res.status(500).json({ success: false, message: "Search failed" });
-  }
-});
+// Removed duplicate /api/search route - now only in gameRoutes.js
 
 // ✅ Sample protected route
 app.get("/api/lists", async (req, res) => {
@@ -158,7 +146,18 @@ app.get("/api/lists", async (req, res) => {
       ORDER BY pl.ListID, g.Title
     `, [req.session.userId]);
 
-    res.json({ success: true, lists: results });
+    // Group games under each list
+    const lists = {};
+    results.forEach(row => {
+      if (!lists[row.ListID]) {
+        lists[row.ListID] = {
+          ListID: row.ListID,
+          ListName: row.ListName
+        };
+      }
+    });
+
+    res.json({ success: true, lists: Object.values(lists) });
 
   } catch (err) {
     console.error("Error fetching user lists:", err);
@@ -167,19 +166,31 @@ app.get("/api/lists", async (req, res) => {
 });
 
 app.post("/api/lists", async (req, res) => {
-    if (!req.session.userId) {
-      return res.json({ success: false, message: "User not logged in" });
-    }
-  
-    const { listName } = req.body;
-  
-    await db.promise().query("INSERT INTO PersonalizedList (UserID, ListName) VALUES (?, ?)", [req.session.userId, listName]);
+  if (!req.session.userId) {
+    return res.json({ success: false, message: "User not logged in" });
+  }
 
-    res.json({ success: true });
-  });
-  
+  const { listName } = req.body;
 
+  try {
+    const [result] = await db.promise().query(
+      "INSERT INTO PersonalizedList (UserID, ListName) VALUES (?, ?)", 
+      [req.session.userId, listName]
+    );
 
+    const listId = result.insertId;
+
+    await db.promise().query(
+      "INSERT INTO GameList (ListID, GameCount) VALUES (?, 0)",
+      [listId]
+    );
+
+    res.json({ success: true, listId });
+  } catch (err) {
+    console.error("Error creating list:", err);
+    res.status(500).json({ success: false, message: "Failed to create list" });
+  }
+});
 
 // Start server
 app.listen(port, () => {
