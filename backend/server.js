@@ -191,6 +191,13 @@ app.post("/api/lists", async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to create list" });
   }
 });
+app.get('/api/auth/status', (req, res) => {
+  const isLoggedIn = req.session && req.session.userId ? true : false;
+  res.json({ 
+    isLoggedIn,
+    userId: isLoggedIn ? req.session.userId : null
+  });
+});
 
 // Start server
 app.listen(port, () => {

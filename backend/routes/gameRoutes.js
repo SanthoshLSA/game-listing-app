@@ -379,5 +379,65 @@ router.delete('/api/lists/:listId', (req, res) => {
     });
   });
 });
+// Add this to backend/routes/gameRoutes.js
+
+// GET user search history
+router.get('/api/users/search-history', (req, res) => {
+  const db = req.app.locals.db;
+  
+  // Check if user is logged in
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ success: false, message: "User not logged in" });
+  }
+  
+  const userId = req.session.userId;
+  
+  const query = `
+    SELECT SearchID, TimeStamp, SearchCriteria
+    FROM User_Searches_SearchHistory
+    WHERE UserID = ?
+    ORDER BY TimeStamp DESC
+  `;
+  
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching search history:', err);
+      return res.status(500).json({ success: false, message: 'Failed to fetch search history' });
+    }
+    
+    res.json({ success: true, history: results });
+  });
+});
+
+// POST new search to history
+router.post('/api/users/search-history', (req, res) => {
+  const db = req.app.locals.db;
+  
+  // Check if user is logged in
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ success: false, message: "User not logged in" });
+  }
+  
+  const userId = req.session.userId;
+  const { searchCriteria } = req.body;
+  
+  if (!searchCriteria) {
+    return res.status(400).json({ success: false, message: "Search criteria required" });
+  }
+  
+  const query = `
+    INSERT INTO User_Searches_SearchHistory (UserID, TimeStamp, SearchCriteria)
+    VALUES (?, NOW(), ?)
+  `;
+  
+  db.query(query, [userId, JSON.stringify(searchCriteria)], (err, result) => {
+    if (err) {
+      console.error('Error saving search history:', err);
+      return res.status(500).json({ success: false, message: 'Failed to save search history' });
+    }
+    
+    res.json({ success: true, searchId: result.insertId });
+  });
+});
 
 module.exports = router;

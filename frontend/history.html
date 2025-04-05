@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IGDB - Search History</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>My Search History</h1>
+    
+    <div class="nav">
+      <button onclick="window.location.href='home.html'" class="secondary">
+        🏠 Home
+      </button>
+      <button onclick="window.location.href='lists.html'" class="secondary">
+        📋 My Lists
+      </button>
+      <button onclick="window.location.href='add-game.html'" class="secondary">
+        ➕ Add Game
+      </button>
+      <button onclick="window.location.href='games.html'" class="secondary">
+        🎮 All Games
+      </button>
+    </div>
+
+    <div id="historyContainer">
+      <p>Loading search history...</p>
+    </div>
+  </div>
+
+  <script>
+    // Check if user is logged in directly with the server
+    function checkAuthStatus() {
+      return fetch('http://localhost:3001/api/auth/status', {
+        method: 'GET',
+        credentials: 'include'
+      })
+      .then(response => response.json())
+      .then(data => {
+        return data.isLoggedIn;
+      })
+      .catch(err => {
+        console.error('Error checking auth status:', err);
+        return false;
+      });
+    }
+
+    // Format the search criteria JSON for better display
+    function formatSearchCriteria(criteriaJson) {
+      try {
+        const criteria = JSON.parse(criteriaJson);
+        let formattedCriteria = '<ul class="search-criteria">';
+        
+        // Handle common search parameters
+        if (criteria.search) formattedCriteria += `<li>Search term: "${criteria.search}"</li>`;
+        if (criteria.genre) formattedCriteria += `<li>Genre: ${criteria.genre}</li>`;
+        if (criteria.minPrice) formattedCriteria += `<li>Min Price: ₹${criteria.minPrice}</li>`;
+        if (criteria.maxPrice) formattedCriteria += `<li>Max Price: ₹${criteria.maxPrice}</li>`;
+        if (criteria.sort) {
+          const sortMap = {
+            'price_asc': 'Price: Low to High',
+            'price_desc': 'Price: High to Low',
+            'rating_asc': 'Rating: Low to High',
+            'rating_desc': 'Rating: High to Low'
+          };
+          formattedCriteria += `<li>Sorted by: ${sortMap[criteria.sort] || criteria.sort}</li>`;
+        }
+        
+        formattedCriteria += '</ul>';
+        return formattedCriteria;
+      } catch (e) {
+        return `<div class="raw-criteria">${criteriaJson}</div>`;
+      }
+    }
+
+    // Format timestamp to readable date
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleString();
+    }
+
+    // Fetch search history
+    function fetchSearchHistory() {
+      fetch('http://localhost:3001/api/users/search-history', {
+        method: 'GET',
+        credentials: 'include'
+      })
+      .then(response => response.json())
+      .then(data => {
+        const container = document.getElementById('historyContainer');
+        
+        if (!data.success) {
+          // If unauthorized, show login message
+          if (data.message === "User not logged in") {
+            container.innerHTML = 
+              '<p class="message warning">Please log in to view your search history</p>' +
+              '<button onclick="redirectToLogin()">Go to Login</button>';
+            return;
+          }
+          
+          container.innerHTML = `<p class="message error">${data.message || 'Failed to load search history'}</p>`;
+          return;
+        }
+        
+        if (data.history.length === 0) {
+          container.innerHTML = '<p>No search history found. Try searching for games!</p>';
+          return;
+        }
+        
+        let historyHTML = '<div class="history-list">';
+        
+        data.history.forEach(item => {
+          historyHTML += `
+            <div class="history-item">
+              <div class="history-time">
+                <span>${formatDate(item.TimeStamp)}</span>
+              </div>
+              <div class="history-details">
+                ${formatSearchCriteria(item.SearchCriteria)}
+              </div>
+            </div>
+          `;
+        });
+        
+        historyHTML += '</div>';
+        container.innerHTML = historyHTML;
+      })
+      .catch(err => {
+        console.error('Error fetching search history:', err);
+        document.getElementById('historyContainer').innerHTML = 
+          '<p class="message error">Error loading search history. Please try again later.</p>';
+      });
+    }
+
+    function redirectToLogin() {
+      // Save the current page to redirect back after login
+      sessionStorage.setItem('redirectAfterLogin', 'history.html');
+      window.location.href = 'index.html';
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', fetchSearchHistory);
+  </script>
+</body>
+</html>

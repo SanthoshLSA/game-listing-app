@@ -20,6 +20,29 @@
       <p>Join our community to create custom game lists and explore our extensive game database.</p>
     </div>
   </div>
+  <script>
+    function handleLoginResponse(response) {
+      if (response.success) {
+        // Store user info in localStorage for client-side access
+        localStorage.setItem('userId', response.user.id);
+        localStorage.setItem('username', response.user.username);
+        localStorage.setItem('userRole', response.user.role);
+        
+        // Check if there's a redirect stored in sessionStorage
+        const redirectPage = sessionStorage.getItem('redirectAfterLogin');
+        if (redirectPage) {
+          sessionStorage.removeItem('redirectAfterLogin'); // Clear it
+          window.location.href = redirectPage; // Redirect to the saved page
+        } else {
+          // Default redirect to home
+          window.location.href = 'home.html';
+        }
+      } else {
+        // Handle login failure
+        document.getElementById('loginError').textContent = response.message || 'Login failed';
+        document.getElementById('loginError').style.display = 'block';
+      }
+    }</script>
 
   <script src="script.js"></script>
 </body>

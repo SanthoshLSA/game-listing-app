@@ -20,6 +20,9 @@
       <button onclick="window.location.href='games.html'" class="secondary">
         🎮 All Games
       </button>
+      <button onclick="window.location.href='history.html'" class="secondary">
+        📜 Search History
+      </button>
     </div>
 
     <div class="controls">
@@ -58,12 +61,46 @@
     let currentPage = 1;
     const resultsPerPage = 5;
 
+    // Log search to history
+    function logSearch(searchCriteria) {
+      // Only log if user is logged in
+      if (!localStorage.getItem('userId')) return;
+      
+      fetch('http://localhost:3001/api/users/search-history', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ searchCriteria })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.success) {
+          console.warn('Failed to log search history:', data.message);
+        }
+      })
+      .catch(err => {
+        console.error('Error logging search:', err);
+      });
+    }
+
     function fetchGames() {
       const searchQuery = document.getElementById('searchInput').value;
       const genre = document.getElementById('genreFilter').value;
       const minPrice = document.getElementById('minPrice').value;
       const maxPrice = document.getElementById('maxPrice').value;
       const sortBy = document.getElementById('sortBy').value;
+
+      // Create search criteria object to log
+      const searchCriteria = {
+        search: searchQuery,
+        genre: genre || null,
+        minPrice: minPrice || null,
+        maxPrice: maxPrice || null,
+        sort: sortBy || null,
+        page: currentPage
+      };
 
       let query = `?search=${encodeURIComponent(searchQuery)}&page=${currentPage}&limit=${resultsPerPage}`;
       if (genre) query += `&genre=${encodeURIComponent(genre)}`;
@@ -97,6 +134,9 @@
           });
 
           document.getElementById('pageNumber').innerText = currentPage;
+          
+          // Log this search
+          logSearch(searchCriteria);
         })
         .catch(err => {
           console.error('Error fetching games:', err);
@@ -120,6 +160,31 @@
       currentPage++;
       fetchGames();
     });
+
+    function logSearch(searchCriteria) {
+  // Log search using the session cookies (no need to check localStorage)
+  fetch('http://localhost:3001/api/users/search-history', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    credentials: 'include', // Important: include cookies for session
+    body: JSON.stringify({ searchCriteria })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (!data.success) {
+      if (data.message === "User not logged in") {
+        console.log("Search not logged: User not logged in");
+      } else {
+        console.warn('Failed to log search history:', data.message);
+      }
+    }
+  })
+  .catch(err => {
+    console.error('Error logging search:', err);
+  });
+}
 
     // Initial fetch
     fetchGames();
