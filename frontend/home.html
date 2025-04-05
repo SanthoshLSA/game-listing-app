@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IGDB - Game Listing Home</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to the IGDB</h1>
+    
+    <div class="nav">
+      <button onclick="window.location.href='lists.html'" class="secondary">
+        📋 My Lists
+      </button>
+      <button onclick="window.location.href='add-game.html'" class="secondary">
+        ➕ Add Game
+      </button>
+      <button onclick="window.location.href='games.html'" class="secondary">
+        🎮 All Games
+      </button>
+    </div>
+
+    <div class="controls">
+      <input type="text" id="searchInput" placeholder="Search game title">
+      <select id="genreFilter">
+        <option value="">All Genres</option>
+        <option value="RPG">RPG</option>
+        <option value="Action">Action</option>
+        <option value="Adventure">Adventure</option>
+        <option value="Shooter">Shooter</option>
+      </select>
+      <input type="number" id="minPrice" placeholder="Min ₹" style="width: 80px;">
+      <input type="number" id="maxPrice" placeholder="Max ₹" style="width: 80px;">
+
+      <select id="sortBy">
+        <option value="">Sort by</option>
+        <option value="price_asc">Price: Low to High</option>
+        <option value="price_desc">Price: High to Low</option>
+        <option value="rating_asc">Rating: Low to High</option>
+        <option value="rating_desc">Rating: High to Low</option>
+      </select>
+
+      <button id="searchBtn">Search</button>
+    </div>
+
+    <div id="resultsContainer"></div>
+
+    <div class="pagination">
+      <button id="prevPage">Previous</button>
+      <span id="pageNumber">1</span>
+      <button id="nextPage">Next</button>
+    </div>
+  </div>
+
+  <script>
+    let currentPage = 1;
+    const resultsPerPage = 5;
+
+    function fetchGames() {
+      const searchQuery = document.getElementById('searchInput').value;
+      const genre = document.getElementById('genreFilter').value;
+      const minPrice = document.getElementById('minPrice').value;
+      const maxPrice = document.getElementById('maxPrice').value;
+      const sortBy = document.getElementById('sortBy').value;
+
+      let query = `?search=${encodeURIComponent(searchQuery)}&page=${currentPage}&limit=${resultsPerPage}`;
+      if (genre) query += `&genre=${encodeURIComponent(genre)}`;
+      if (minPrice) query += `&minPrice=${minPrice}`;
+      if (maxPrice) query += `&maxPrice=${maxPrice}`;
+      if (sortBy) query += `&sort=${sortBy}`;
+
+      fetch(`http://localhost:3001/api/games${query}`)
+        .then(response => response.json())
+        .then(data => {
+          const container = document.getElementById('resultsContainer');
+          container.innerHTML = '';
+
+          if (data.length === 0) {
+            container.innerHTML = '<p>No games found.</p>';
+            return;
+          }
+
+          data.forEach(game => {
+            const gameCard = document.createElement('div');
+            gameCard.className = 'game-card';
+            gameCard.innerHTML = `
+              <h3>${game.Title}</h3>
+              <p><strong>Genre:</strong> ${game.Genre}</p>
+              <p><strong>Price:</strong> ₹${game.Price}</p>
+              <p><strong>Rating:</strong> ${game.Rating}/10</p>
+              <p><strong>Released:</strong> ${new Date(game.ReleaseDate).toDateString()}</p>
+              <p>${game.Description}</p>
+            `;
+            container.appendChild(gameCard);
+          });
+
+          document.getElementById('pageNumber').innerText = currentPage;
+        })
+        .catch(err => {
+          console.error('Error fetching games:', err);
+          document.getElementById('resultsContainer').innerHTML = '<p class="message error">Error loading games. Try again later.</p>';
+        });
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', () => {
+      currentPage = 1;
+      fetchGames();
+    });
+
+    document.getElementById('prevPage').addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        fetchGames();
+      }
+    });
+
+    document.getElementById('nextPage').addEventListener('click', () => {
+      currentPage++;
+      fetchGames();
+    });
+
+    // Initial fetch
+    fetchGames();
+  </script>
+</body>
+</html>

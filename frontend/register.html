@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register - IGDB</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Create an Account</h1>
+    
+    <div class="card">
+      <form id="registerForm">
+        <div>
+          <label for="username">Username</label>
+          <input type="text" id="username" placeholder="Choose a username" required />
+        </div>
+        
+        <div>
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="Your email address" required />
+        </div>
+        
+        <div>
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Create a password" required />
+        </div>
+        
+        <div>
+          <label for="role">Account Type</label>
+          <select id="role">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        
+        <button type="submit">Register</button>
+      </form>
+      
+      <p id="registerMsg" class="message" style="display: none;"></p>
+      
+      <div class="nav">
+        <p>Already have an account? <a href="login.html">Login</a></p>
+        <p><a href="index.html">Back to Home</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("registerForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const role = document.getElementById("role").value;
+      const registerMsg = document.getElementById("registerMsg");
+
+      registerMsg.textContent = "Creating your account...";
+      registerMsg.className = "message";
+      registerMsg.style.display = "block";
+
+      try {
+        const response = await fetch("http://localhost:3001/api/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, email, password, role }),
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          registerMsg.textContent = result.message;
+          registerMsg.className = "message success";
+          
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 1500);
+        } else {
+          registerMsg.textContent = result.message;
+          registerMsg.className = "message error";
+        }
+      } catch (error) {
+        registerMsg.textContent = "Registration failed. Please try again.";
+        registerMsg.className = "message error";
+        console.error("Registration error:", error);
+      }
+    });
+  </script>
+</body>
+</html>

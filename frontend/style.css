@@ -1,0 +1,277 @@
+/* Global Styles */
+:root {
+    --primary: #3a86ff;
+    --primary-hover: #2a76ef;
+    --background: #ffffff;
+    --card-bg: #f8f9fa;
+    --text: #333333;
+    --text-light: #6c757d;
+    --border: #dee2e6;
+    --success: #28a745;
+    --danger: #dc3545;
+    --shadow: rgba(0, 0, 0, 0.05);
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    line-height: 1.6;
+    color: var(--text);
+    background-color: var(--background);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin-bottom: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  
+  a:hover {
+    color: var(--primary-hover);
+  }
+  
+  /* Navigation */
+  .nav {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+  
+  .nav a {
+    padding: 8px 0;
+  }
+  
+  /* Container */
+  .container {
+    width: 100%;
+    max-width: 1000px;
+  }
+  
+  /* Card Styles */
+  .card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px var(--shadow);
+    border: 1px solid var(--border);
+  }
+  
+  /* Form Styles */
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 500px;
+    margin-bottom: 20px;
+  }
+  
+  label {
+    font-weight: 500;
+    margin-bottom: 5px;
+    display: block;
+  }
+  
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+  }
+  
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  
+  /* Button Styles */
+  button {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  button:hover {
+    background-color: var(--primary-hover);
+  }
+  
+  button.secondary {
+    background-color: transparent;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+  }
+  
+  button.secondary:hover {
+    background-color: rgba(58, 134, 255, 0.1);
+  }
+  
+  button.danger {
+    background-color: var(--danger);
+  }
+  
+  /* Game Cards */
+  .game-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px var(--shadow);
+    border: 1px solid var(--border);
+  }
+  
+  .game-card h3 {
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  
+  /* Search and Filter Controls */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 25px;
+    align-items: center;
+  }
+  
+  .controls input,
+  .controls select {
+    max-width: 200px;
+  }
+  
+  /* Pagination */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 30px;
+  }
+  
+  .pagination button {
+    min-width: 100px;
+  }
+  
+  /* List Items */
+  .list-item {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid var(--border);
+  }
+  
+  .list-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--shadow);
+  }
+  
+  .game-item,
+  .added-game {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border);
+  }
+  
+  .added-game {
+    background-color: rgba(40, 167, 69, 0.1);
+    border-color: rgba(40, 167, 69, 0.2);
+  }
+  
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 8px;
+  }
+  
+  .delete-btn:hover {
+    background: none;
+    color: #b02a37;
+  }
+  
+  /* Messages */
+  .message {
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+  }
+  
+  .message.error {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+  }
+  
+  .message.success {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(40, 167, 69, 0.2);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    body {
+      padding: 15px;
+    }
+  
+    .controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    .controls input,
+    .controls select {
+      max-width: 100%;
+    }
+  }
+  
+  

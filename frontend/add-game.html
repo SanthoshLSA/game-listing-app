@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Game - IGDB</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Add a New Game</h1>
+    
+    <div class="nav">
+      <a href="home.html">← Back to Home</a>
+    </div>
+    
+    <div class="card">
+      <form id="gameForm">
+        <div>
+          <label for="title">Title</label>
+          <input name="title" id="title" placeholder="Game title" required>
+        </div>
+        
+        <div>
+          <label for="description">Description</label>
+          <textarea name="description" id="description" placeholder="Game description" rows="3"></textarea>
+        </div>
+        
+        <div>
+          <label for="rating">Rating (0-10)</label>
+          <input name="rating" id="rating" type="number" step="0.1" min="0" max="10" placeholder="Rating">
+        </div>
+        
+        <div>
+          <label for="price">Price (₹)</label>
+          <input name="price" id="price" type="number" step="0.01" min="0" placeholder="Price">
+        </div>
+        
+        <div>
+          <label for="genre">Genre</label>
+          <input name="genre" id="genre" placeholder="Game genre">
+        </div>
+        
+        <div>
+          <label for="releaseDate">Release Date</label>
+          <input name="releaseDate" id="releaseDate" type="date">
+        </div>
+        
+        <button type="submit">Add Game</button>
+      </form>
+      
+      <p id="resultMessage" class="message" style="display: none;"></p>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('gameForm');
+    const resultMessage = document.getElementById('resultMessage');
+    
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const game = {
+        Title: form.title.value,
+        Description: form.description.value,
+        Rating: parseFloat(form.rating.value),
+        Price: parseFloat(form.price.value),
+        Genre: form.genre.value,
+        ReleaseDate: form.releaseDate.value
+      };
+
+      try {
+        const res = await fetch('http://localhost:3001/games', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(game)
+        });
+
+        const result = await res.json();
+        
+        resultMessage.innerText = result.message || 'Game added successfully!';
+        resultMessage.className = 'message success';
+        resultMessage.style.display = 'block';
+        
+        form.reset();
+        
+        // Hide message after 3 seconds
+        setTimeout(() => {
+          resultMessage.style.display = 'none';
+        }, 3000);
+      } catch (error) {
+        resultMessage.innerText = 'Error adding game. Please try again.';
+        resultMessage.className = 'message error';
+        resultMessage.style.display = 'block';
+        console.error('Error:', error);
+      }
+    });
+  </script>
+</body>
+</html>
+

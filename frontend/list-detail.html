@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Game List Details - IGDB</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1 id="listTitle">Loading...</h1>
+    
+    <div class="nav">
+      <a href="lists.html">← Back to My Lists</a>
+    </div>
+
+    <div class="card">
+      <h2>Add Games to List</h2>
+      <div class="controls">
+        <input type="text" id="gameSearch" placeholder="Search for a game">
+        <button id="searchGameBtn">Search</button>
+      </div>
+      <div id="searchResults"></div>
+    </div>
+
+    <h2>Games in this List</h2>
+    <div id="gamesContainer">Loading...</div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const listId = urlParams.get("listId");
+
+    if (!listId) {
+      alert("Invalid list ID.");
+      window.location.href = "lists.html";
+    }
+
+    let existingGames = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      fetchListDetails();
+      fetchGamesInList();
+
+      document.getElementById("searchGameBtn").addEventListener("click", searchGames);
+      document.getElementById("gameSearch").addEventListener("keydown", e => {
+        if (e.key === "Enter") searchGames();
+      });
+    });
+
+    function fetchListDetails() {
+      fetch(`http://localhost:3001/api/lists/${listId}`, { credentials: "include" })
+        .then(res => res.json())
+        .then(data => {
+          if (!data.success) {
+            alert("Failed to load list.");
+            window.location.href = "lists.html";
+            return;
+          }
+          document.getElementById("listTitle").innerText = data.list.ListName;
+        })
+        .catch(err => console.error("Error fetching list details:", err));
+    }
+
+    function fetchGamesInList() {
+      fetch(`http://localhost:3001/api/lists/${listId}`, { credentials: "include" })
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById("gamesContainer");
+          container.innerHTML = "";
+          existingGames = [];
+
+          if (!data.success || data.list.Games.length === 0) {
+            container.innerHTML = "<p>No games added yet.</p>";
+            return;
+          }
+
+          data.list.Games.forEach(game => {
+            const gameName = game.Title || game.GameName;
+            existingGames.push(gameName);
+
+            const div = document.createElement("div");
+            div.className = "added-game";
+
+            const span = document.createElement("span");
+            span.innerText = gameName;
+
+            const delBtn = document.createElement("button");
+            delBtn.className = "delete-btn";
+            delBtn.className = "delete-btn";
+            delBtn.innerText = "✖";
+            delBtn.onclick = () => removeGameFromList(gameName);
+
+            div.appendChild(span);
+            div.appendChild(delBtn);
+            container.appendChild(div);
+          });
+        })
+        .catch(err => console.error("Error fetching games:", err));
+    }
+
+    function searchGames() {
+      const query = document.getElementById("gameSearch").value.trim();
+      if (!query) return;
+
+      fetch(`http://localhost:3001/api/search?query=${encodeURIComponent(query)}`, { credentials: "include" })
+        .then(res => res.json())
+        .then(data => {
+          const resultsContainer = document.getElementById("searchResults");
+          resultsContainer.innerHTML = "";
+
+          if (!data.success || data.games.length === 0) {
+            resultsContainer.innerHTML = "<p>No results found.</p>";
+            return;
+          }
+
+          data.games.forEach(game => {
+            const div = document.createElement("div");
+            div.className = "game-item";
+            div.innerText = game.GameName;
+            div.onclick = () => addGameToList(game);
+            resultsContainer.appendChild(div);
+          });
+        })
+        .catch(err => console.error("Error searching games:", err));
+    }
+
+    function addGameToList(game) {
+      const gameName = game.GameName;
+      const gameId = game.GameID;
+
+      if (existingGames.includes(gameName)) {
+        alert("This game is already in the list.");
+        return;
+      }
+
+      fetch(`http://localhost:3001/api/lists/${listId}/add-game`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ gameId })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          fetchGamesInList();
+          document.getElementById("searchGameBtn").click();
+          document.getElementById("gameSearch").value = "";
+        } else {
+          alert("Failed to add game: " + data.message);
+        }
+      })
+      .catch(err => console.error("Error adding game:", err));
+    }
+
+    function removeGameFromList(gameName) {
+      if (!confirm(`Remove "${gameName}" from this list?`)) return;
+
+      fetch(`http://localhost:3001/api/lists/${listId}/games`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ gameName })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          fetchGamesInList();
+        } else {
+          alert("Failed to remove game: " + data.message);
+        }
+      })
+      .catch(err => console.error("Error removing game:", err));
+    }
+  </script>
+</body>
+</html>
+

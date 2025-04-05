@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>All Games - IGDB</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>All Games</h1>
+    
+    <div class="nav">
+      <a href="home.html">← Back to Home</a>
+    </div>
+
+    <div id="resultsContainer"></div>
+  </div>
+
+  <script>
+    function fetchAllGames() {
+      fetch('http://localhost:3001/api/games')
+        .then(response => response.json())
+        .then(data => {
+          const container = document.getElementById('resultsContainer');
+          container.innerHTML = '';
+          
+          if (data.length === 0) {
+            container.innerHTML = '<p>No games found.</p>';
+            return;
+          }
+          
+          data.forEach(game => {
+            const card = document.createElement('div');
+            card.className = 'game-card';
+            card.innerHTML = `
+              <h3>${game.Title}</h3>
+              <p><strong>Genre:</strong> ${game.Genre}</p>
+              <p><strong>Price:</strong> ₹${game.Price}</p>
+              <p><strong>Rating:</strong> ${game.Rating}/10</p>
+              <p><strong>Released:</strong> ${new Date(game.ReleaseDate).toDateString()}</p>
+              <p>${game.Description}</p>
+            `;
+            container.appendChild(card);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching games:', error);
+          document.getElementById('resultsContainer').innerHTML = 
+            '<p class="message error">Error loading games. Please try again later.</p>';
+        });
+    }
+
+    // Fetch games on page load
+    fetchAllGames();
+  </script>
+</body>
+</html>
+
