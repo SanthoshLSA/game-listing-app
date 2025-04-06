@@ -23,6 +23,9 @@
       <button onclick="window.location.href='games.html'" class="secondary">
         🎮 All Games
       </button>
+      <button onclick="deleteSearchHistory()" class="danger">
+        🗑️ Delete All History
+      </button>
     </div>
 
     <div id="historyContainer">
@@ -46,6 +49,37 @@
         return false;
       });
     }
+    // Function to delete search history
+function deleteSearchHistory() {
+  if (!confirm('Are you sure you want to delete your entire search history? This cannot be undone.')) {
+    return; // User cancelled the operation
+  }
+  
+  fetch('http://localhost:3001/api/users/search-history', {
+    method: 'DELETE',
+    credentials: 'include'
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Show success message
+      document.getElementById('historyContainer').innerHTML = 
+        `<p class="message success">${data.message || 'Search history deleted successfully'}</p>`;
+      
+      // Refresh the history list after a brief delay
+      setTimeout(fetchSearchHistory, 1500);
+    } else {
+      // Show error message
+      document.getElementById('historyContainer').innerHTML = 
+        `<p class="message error">${data.message || 'Failed to delete search history'}</p>`;
+    }
+  })
+  .catch(err => {
+    console.error('Error deleting search history:', err);
+    document.getElementById('historyContainer').innerHTML = 
+      '<p class="message error">Error deleting search history. Please try again later.</p>';
+  });
+}
 
     // Format the search criteria JSON for better display
     function formatSearchCriteria(criteriaJson) {

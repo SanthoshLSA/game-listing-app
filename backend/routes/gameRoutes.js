@@ -440,4 +440,31 @@ router.post('/api/users/search-history', (req, res) => {
   });
 });
 
+// DELETE user search history
+router.delete('/api/users/search-history', (req, res) => {
+  const db = req.app.locals.db;
+  
+  // Check if user is logged in
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ success: false, message: "User not logged in" });
+  }
+  
+  const userId = req.session.userId;
+  
+  const query = `DELETE FROM User_Searches_SearchHistory WHERE UserID = ?`;
+  
+  db.query(query, [userId], (err, result) => {
+    if (err) {
+      console.error('Error deleting search history:', err);
+      return res.status(500).json({ success: false, message: 'Failed to delete search history' });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Search history deleted successfully',
+      deletedCount: result.affectedRows
+    });
+  });
+});
+
 module.exports = router;
