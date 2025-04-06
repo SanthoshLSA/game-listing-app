@@ -76,13 +76,23 @@
         const res = await fetch('http://localhost:3001/games', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(game)
+          body: JSON.stringify(game),
+          credentials: 'include'  // Added to ensure cookies are sent
         });
 
         const result = await res.json();
         
-        resultMessage.innerText = result.message || 'Game added successfully!';
-        resultMessage.className = 'message success';
+        if (result.message) {
+          resultMessage.innerText = result.message;
+          resultMessage.className = 'message success';
+        } else if (result.error) {
+          resultMessage.innerText = result.error;
+          resultMessage.className = 'message error';
+        } else {
+          resultMessage.innerText = 'Game added successfully!';
+          resultMessage.className = 'message success';
+        }
+        
         resultMessage.style.display = 'block';
         
         form.reset();

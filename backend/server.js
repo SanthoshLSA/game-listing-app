@@ -118,8 +118,6 @@ app.post("/api/register", (req, res) => {
   });
 });
 
-// Removed duplicate /api/search route - now only in gameRoutes.js
-
 // ✅ Sample protected route
 app.get("/api/lists", async (req, res) => {
   if (!req.session.userId) {
@@ -191,27 +189,12 @@ app.post("/api/lists", async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to create list" });
   }
 });
+
 app.get('/api/auth/status', (req, res) => {
   const isLoggedIn = req.session && req.session.userId ? true : false;
   res.json({ 
     isLoggedIn,
     userId: isLoggedIn ? req.session.userId : null
-  });
-});
-app.post('/games', (req, res) => {
-  const { title, description, rating, price, genre, releaseDate } = req.body;
-
-  const query = `
-      INSERT INTO Game (Title, Description, Rating, Price, Genre, ReleaseDate)
-      VALUES (?, ?, ?, ?, ?, ?)
-  `;
-
-  db.query(query, [title, description, rating, price, genre, releaseDate], (err, result) => {
-      if (err) {
-          console.error(err);
-          return res.status(500).json({ error: 'Database insert error' });
-      }
-      res.status(201).json({ message: 'Game added!', gameId: result.insertId });
   });
 });
 
