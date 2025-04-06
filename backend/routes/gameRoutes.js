@@ -239,6 +239,78 @@ router.get('/api/lists/:listId', (req, res) => {
   });
 });
 
+// DELETE a game (admin only)
+router.delete('/api/games/:gameId', (req, res) => {
+  const db = req.app.locals.db;
+  const { gameId } = req.params;
+  
+  // Check if user is logged in and has admin role
+  if (!req.session || !req.session.userId || req.session.userRole !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Unauthorized. Admin access required.' });
+  }
+
+  // First remove any references in Game_Included_in_GameList
+  const deleteRefQuery = 'DELETE FROM Game_Included_in_GameList WHERE GameID = ?';
+  db.query(deleteRefQuery, [gameId], (refErr) => {
+    if (refErr) {
+      console.error('Error removing game references:', refErr);
+      return res.status(500).json({ success: false, message: 'Failed to delete game references' });
+    }
+
+    // Then delete the game itself
+    const deleteGameQuery = 'DELETE FROM Game WHERE GameID = ?';
+    db.query(deleteGameQuery, [gameId], (err, result) => {
+      if (err) {
+        console.error('Error deleting game:', err);
+        return res.status(500).json({ success: false, message: 'Failed to delete game' });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: 'Game not found' });
+      }
+
+      res.json({ success: true, message: 'Game deleted successfully' });
+    });
+  });
+});
+router.delete('/api/games/:gameId', (req, res) => {
+  const db = req.app.locals.db;
+  const { gameId } = req.params;
+  
+  // Check if user is logged in and has admin role
+  if (!req.session || !req.session.userId || req.session.userRole !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Unauthorized. Admin access required.' });
+  }
+
+  // First, remove game from any lists where it's included
+  const removeFromListsQuery = `
+    DELETE FROM Game_Included_in_GameList
+    WHERE GameID = ?
+  `;
+  
+  db.query(removeFromListsQuery, [gameId], (err) => {
+    if (err) {
+      console.error('Error removing game from lists:', err);
+      return res.status(500).json({ success: false, message: 'Error removing game from lists' });
+    }
+    
+    // Then delete the game itself
+    const deleteGameQuery = `DELETE FROM Game WHERE GameID = ?`;
+    
+    db.query(deleteGameQuery, [gameId], (err, result) => {
+      if (err) {
+        console.error('Error deleting game:', err);
+        return res.status(500).json({ success: false, message: 'Failed to delete game' });
+      }
+      
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: 'Game not found' });
+      }
+      
+      res.json({ success: true, message: 'Game deleted successfully' });
+    });
+  });
+});
 // POST add game to list
 router.post('/api/lists/:listId/add-game', (req, res) => {
   const db = req.app.locals.db;
