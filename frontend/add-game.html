@@ -3,22 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Add Game - IGDB</title>
+  <title>Manage Games - IGDB</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
     <div id="adminOnlyContent" style="display: none;">
       <div class="page-title">
-        <h1>Add a New Game</h1>
-        <p>Contribute to our growing game database</p>
+        <h1>Manage Games</h1>
+        <p>Add new games or delete existing ones</p>
       </div>
       
       <div class="nav">
         <a href="home.html">← Back to Home</a>
       </div>
       
+      <!-- Add Game Section -->
       <div class="section">
+        <h2>Add a New Game</h2>
         <form id="gameForm">
           <div>
             <label for="title">Title</label>
@@ -55,6 +57,25 @@
         
         <p id="resultMessage" class="message" style="display: none;"></p>
       </div>
+      
+      <!-- Delete Games Section -->
+      <div class="section">
+        <h2>Delete Existing Games</h2>
+        <div class="controls">
+          <input type="text" id="searchGameInput" placeholder="Search by title">
+          <button id="searchGameBtn">Search</button>
+        </div>
+        
+        <div id="gamesContainer" class="games-list">
+          <p>Loading games...</p>
+        </div>
+        
+        <div class="pagination">
+          <button id="prevGamesPage">Previous</button>
+          <span id="gamesPageNumber">1</span>
+          <button id="nextGamesPage">Next</button>
+        </div>
+      </div>
     </div>
     
     <div id="unauthorizedMessage" style="display: none;">
@@ -62,7 +83,7 @@
         <h1>Unauthorized Access</h1>
       </div>
       <div class="section">
-        <p class="message error">You need admin privileges to add games to the database.</p>
+        <p class="message error">You need admin privileges to manage games in the database.</p>
         <div class="nav">
           <a href="home.html">← Back to Home</a>
         </div>
@@ -71,6 +92,10 @@
   </div>
 
   <script>
+    // Game listing pagination variables
+    let currentGamesPage = 1;
+    const gamesPerPage = 10;
+    
     // Check auth status and role when page loads
     document.addEventListener('DOMContentLoaded', async () => {
       try {
@@ -92,6 +117,8 @@
             if (userData.user && userData.user.role === 'admin') {
               // Show admin content if user is an admin
               document.getElementById('adminOnlyContent').style.display = 'block';
+              // Load games for deletion
+              fetchGamesForDeletion();
             } else {
               // Show unauthorized message if not admin
               document.getElementById('unauthorizedMessage').style.display = 'block';
@@ -163,6 +190,8 @@
         // Only reset form on success
         if (!result.error) {
           form.reset();
+          // Refresh the games list after adding a new game
+          fetchGamesForDeletion();
         }
         
         // Hide message after 3 seconds
@@ -174,6 +203,147 @@
         resultMessage.className = 'message error';
         resultMessage.style.display = 'block';
         console.error('Error:', error);
+      }
+    });
+    
+    // Fetch games for deletion section
+    function fetchGamesForDeletion() {
+      const searchQuery = document.getElementById('searchGameInput')?.value || '';
+      const offset = (currentGamesPage - 1) * gamesPerPage;
+      
+      // Use the existing games API endpoint with pagination
+      fetch(`http://localhost:3001/api/games?search=${encodeURIComponent(searchQuery)}&page=${currentGamesPage}&limit=${gamesPerPage}`, {
+        credentials: 'include'
+      })
+      .then(response => response.json())
+      .then(games => {
+        const container = document.getElementById('gamesContainer');
+        
+        if (games.length === 0) {
+          container.innerHTML = '<p>No games found.</p>';
+          return;
+        }
+        
+        // Create a table to display games
+        let html = `
+          <table class="games-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Genre</th>
+                <th>Price</th>
+                <th>Rating</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        games.forEach(game => {
+          html += `
+            <tr>
+              <td>${game.GameID}</td>
+              <td>${game.Title}</td>
+              <td>${game.Genre || '-'}</td>
+              <td>₹${game.Price}</td>
+              <td>${game.Rating || '-'}</td>
+              <td>
+                <button class="danger delete-game-btn" data-id="${game.GameID}" data-title="${game.Title}">Delete</button>
+              </td>
+            </tr>
+          `;
+        });
+        
+        html += `
+            </tbody>
+          </table>
+        `;
+        
+        container.innerHTML = html;
+        
+        // Update page number
+        document.getElementById('gamesPageNumber').innerText = currentGamesPage;
+        
+        // Add event listeners to delete buttons
+        document.querySelectorAll('.delete-game-btn').forEach(button => {
+          button.addEventListener('click', handleDeleteGame);
+        });
+      })
+      .catch(err => {
+        console.error('Error fetching games:', err);
+        document.getElementById('gamesContainer').innerHTML = 
+          '<p class="message error">Error loading games. Try again later.</p>';
+      });
+    }
+    
+    // Handle game deletion
+    function handleDeleteGame(e) {
+      const gameId = e.target.getAttribute('data-id');
+      const gameTitle = e.target.getAttribute('data-title');
+      
+      if (confirm(`Are you sure you want to delete "${gameTitle}"? This action cannot be undone.`)) {
+        fetch(`http://localhost:3001/api/games/${gameId}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(result => {
+          if (result.success) {
+            // Show success message
+            alert(`Game "${gameTitle}" deleted successfully.`);
+            // Refresh the games list
+            fetchGamesForDeletion();
+          } else {
+            alert(`Error: ${result.message}`);
+          }
+        })
+        .catch(err => {
+          console.error('Error deleting game:', err);
+          alert('Error deleting game. Please try again.');
+        });
+      }
+    }
+    
+    // Set up event listeners for search and pagination in the delete section
+    document.addEventListener('DOMContentLoaded', () => {
+      // These might not exist yet if user is not admin, so check first
+      const searchGameBtn = document.getElementById('searchGameBtn');
+      const prevGamesPage = document.getElementById('prevGamesPage');
+      const nextGamesPage = document.getElementById('nextGamesPage');
+      
+      if (searchGameBtn) {
+        searchGameBtn.addEventListener('click', () => {
+          currentGamesPage = 1;
+          fetchGamesForDeletion();
+        });
+      }
+      
+      if (prevGamesPage) {
+        prevGamesPage.addEventListener('click', () => {
+          if (currentGamesPage > 1) {
+            currentGamesPage--;
+            fetchGamesForDeletion();
+          }
+        });
+      }
+      
+      if (nextGamesPage) {
+        nextGamesPage.addEventListener('click', () => {
+          currentGamesPage++;
+          fetchGamesForDeletion();
+        });
+      }
+      
+      // Add enter key support for search
+      const searchGameInput = document.getElementById('searchGameInput');
+      if (searchGameInput) {
+        searchGameInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            currentGamesPage = 1;
+            fetchGamesForDeletion();
+          }
+        });
       }
     });
   </script>
