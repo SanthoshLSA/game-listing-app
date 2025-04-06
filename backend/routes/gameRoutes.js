@@ -149,8 +149,15 @@ router.get("/api/search", async (req, res) => {
 });
 
 // POST new game
+// POST new game - with admin authorization check
 router.post('/games', (req, res) => {
   const db = req.app.locals.db;
+  
+  // Check if user is logged in and has admin role
+  if (!req.session || !req.session.userId || req.session.userRole !== 'admin') {
+    return res.status(403).json({ error: 'Unauthorized. Admin access required.' });
+  }
+
   const { Title, Description, Rating, Price, Genre, ReleaseDate } = req.body;
 
   if (!Title || !Price) {

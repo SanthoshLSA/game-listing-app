@@ -79,15 +79,67 @@ app.post("/api/login", (req, res) => {
     }
   });
 });
+// Add to server.js or in appropriate route file
+
+// GET user details endpoint (needed for role checking)
+app.get("/api/users/:userId", (req, res) => {
+  // Ensure the user is requesting their own info or is an admin
+  if (!req.session.userId || (req.session.userId != req.params.userId && req.session.userRole !== 'admin')) {
+    return res.status(403).json({ success: false, message: "Unauthorized" });
+  }
+  
+  const query = "SELECT UserID, Username, Email, Role FROM User WHERE UserID = ?";
+  db.query(query, [req.params.userId], (err, results) => {
+    if (err) {
+      console.error("Error fetching user:", err);
+      return res.status(500).json({ success: false, message: "Server error" });
+    }
+    
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    
+    res.json({ 
+      success: true, 
+      user: {
+        id: results[0].UserID,
+        username: results[0].Username,
+        email: results[0].Email,
+        role: results[0].Role
+      }
+    });
+  });
+});
 
 // ✅ Logout route
-app.post("/api/logout", (req, res) => {
-  req.session.destroy((err) => {
+// ✅ Login - Updated to include role in session
+app.post("/api/login", (req, res) => {
+  const { email, password } = req.body;
+
+  const query = "SELECT * FROM User WHERE Email = ? AND Password = ?";
+  db.query(query, [email, password], (err, results) => {
     if (err) {
-      return res.status(500).json({ success: false });
+      console.error("Error during login:", err);
+      return res.status(500).json({ success: false, message: "Internal server error" });
     }
-    res.clearCookie("connect.sid");
-    res.json({ success: true });
+
+    if (results.length > 0) {
+      const user = results[0];
+      // Store both user ID and role in session
+      req.session.userId = user.UserID;
+      req.session.userRole = user.Role; // Add user role to session
+      
+      res.json({
+        success: true,
+        user: {
+          id: user.UserID,
+          username: user.Username,
+          role: user.Role
+        }
+      });
+    } else {
+      res.json({ success: false, message: "Invalid email or password" });
+    }
   });
 });
 
