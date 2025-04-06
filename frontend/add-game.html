@@ -62,8 +62,10 @@
       <div class="section">
         <h2>Delete Existing Games</h2>
         <div class="controls">
-          <input type="text" id="searchGameInput" placeholder="Search by title">
-          <button id="searchGameBtn">Search</button>
+          <div class="search-container">
+            <input type="text" id="searchGameInput" placeholder="Search games by title...">
+            <button id="searchGameBtn">Search</button>
+          </div>
         </div>
         
         <div id="gamesContainer" class="games-list">
@@ -71,26 +73,166 @@
         </div>
         
         <div class="pagination">
-          <button id="prevGamesPage">Previous</button>
-          <span id="gamesPageNumber">1</span>
-          <button id="nextGamesPage">Next</button>
+          <button id="prevGamesPage" class="pagination-btn">← Previous</button>
+          <span id="gamesPageNumber" class="page-indicator">1</span>
+          <button id="nextGamesPage" class="pagination-btn">Next →</button>
         </div>
       </div>
-    </div>
+      
+      <style>
+        /* This ensures our table header styles take precedence */
+    .games-table thead tr {
+      background-color: #333 !important;
+      color: white !important;
+    }
     
-    <div id="unauthorizedMessage" style="display: none;">
-      <div class="page-title">
-        <h1>Unauthorized Access</h1>
-      </div>
-      <div class="section">
-        <p class="message error">You need admin privileges to manage games in the database.</p>
-        <div class="nav">
-          <a href="home.html">← Back to Home</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
+    .games-table th {
+      background-color: #333 !important;
+      color: white !important;
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 2px solid #555;
+      font-weight: bold;
+    }
+    
+    /* Ensure hover effect doesn't add white overlay */
+    .games-table tr:hover {
+      background-color: rgba(76, 175, 80, 0.1); /* Light green with transparency */
+    }
+    
+    /* Update page indicator style to match */
+    .page-indicator {
+      padding: 8px 12px;
+      background-color: #333 !important; /* Matching header style */
+      color: white !important;
+      border-radius: 4px;
+      margin: 0 10px;
+    }
+        /* Enhanced styling for the delete games section */
+        .search-container {
+          display: flex;
+          margin-bottom: 20px;
+          width: 100%;
+        }
+        
+        .search-container input {
+          flex: 1;
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 4px 0 0 4px;
+          font-size: 16px;
+        }
+        
+        .search-container button {
+          padding: 10px 20px;
+          background-color: #4CAF50;
+          color: white;
+          border: none;
+          border-radius: 0 4px 4px 0;
+          cursor: pointer;
+          font-size: 16px;
+        }
+        
+        .search-container button:hover {
+          background-color: #45a049;
+        }
+        
+        .games-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 20px 0;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+          border-radius: 4px;
+          overflow: hidden;
+        }
+        
+        .games-table thead {
+          background-color: #333; /* Darker header background */
+          color: white; /* White text for better contrast */
+        }
+        
+        .games-table th {
+          padding: 12px 15px;
+          text-align: left;
+          border-bottom: 2px solid #ddd;
+          font-weight: bold;
+        }
+        
+        .games-table td {
+          padding: 10px 15px;
+          border-bottom: 1px solid #ddd;
+        }
+        
+        /* Modified hover effect - subtle background change without white overlay */
+        .games-table tr:hover {
+          background-color: rgba(76, 175, 80, 0.1); /* Light green with transparency */
+        }
+        
+        .games-table tbody tr:last-child td {
+          border-bottom: none;
+        }
+        
+        .delete-game-btn {
+          background-color: #f44336;
+          color: white;
+          border: none;
+          padding: 8px 12px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        }
+        
+        .delete-game-btn:hover {
+          background-color: #d32f2f;
+        }
+        
+        .pagination {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-top: 20px;
+        }
+        
+        .pagination-btn {
+          background-color: #4CAF50;
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          margin: 0 5px;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+        
+        .pagination-btn:hover {
+          background-color: #45a049;
+        }
+        
+        .pagination-btn:disabled {
+          background-color: #cccccc;
+          cursor: not-allowed;
+        }
+        
+        /* Modified page indicator style */
+        .page-indicator {
+          padding: 8px 12px;
+          background-color: #333; /* Matching header style */
+          color: white;
+          border-radius: 4px;
+          margin: 0 10px;
+        }
+        
+        .message.error {
+          color: #f44336;
+          background-color: #ffebee;
+          padding: 10px;
+          border-radius: 4px;
+          margin: 10px 0;
+        }
+        
+        .games-list {
+          min-height: 300px;
+        }
+      </style>
   <script>
     // Game listing pagination variables
     let currentGamesPage = 1;
@@ -249,7 +391,7 @@
               <td>₹${game.Price}</td>
               <td>${game.Rating || '-'}</td>
               <td>
-                <button class="danger delete-game-btn" data-id="${game.GameID}" data-title="${game.Title}">Delete</button>
+                <button class="secondarydanger delete-game-btn" data-id="${game.GameID}" data-title="${game.Title}">Delete</button>
               </td>
             </tr>
           `;
