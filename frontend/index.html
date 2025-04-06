@@ -8,18 +8,36 @@
 </head>
 <body>
   <div class="container">
-    <h1>Welcome to the IGDB</h1>
-    <p>Your ultimate destination for game information and personalized collections.</p>
+    <div class="page-title">
+      <h1>Welcome to IGDB</h1>
+      <p>Your ultimate gaming database and collection manager</p>
+    </div>
     
-    <div class="card">
-      <h2>Get Started</h2>
-      <div class="nav">
-        <a href="login.html" class="button">Login</a>
-        <a href="register.html">Register</a>
+    <div class="section">
+      <div class="features">
+        <div class="feature-item">
+          <h3>🎮 Explore Games</h3>
+          <p>Browse our extensive collection of games with detailed information.</p>
+        </div>
+        
+        <div class="feature-item">
+          <h3>📋 Create Lists</h3>
+          <p>Build and manage personalized game collections.</p>
+        </div>
+        
+        <div class="feature-item">
+          <h3>🔍 Track History</h3>
+          <p>Keep a record of your game searches and discoveries.</p>
+        </div>
       </div>
-      <p>Join our community to create custom game lists and explore our extensive game database.</p>
+      
+      <div class="cta-container">
+        <a href="login.html" class="button primary-button">Login</a>
+        <a href="register.html" class="button secondary-button">Register</a>
+      </div>
     </div>
   </div>
+
   <script>
     function handleLoginResponse(response) {
       if (response.success) {
@@ -42,8 +60,8 @@
         document.getElementById('loginError').textContent = response.message || 'Login failed';
         document.getElementById('loginError').style.display = 'block';
       }
-    }</script>
-
-  <script src="script.js"></script>
+    }
+  </script>
 </body>
 </html>
+

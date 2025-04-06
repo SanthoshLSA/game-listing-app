@@ -5,7 +5,7 @@ const router = express.Router();
 router.get('/api/games', async (req, res) => {
   const db = req.app.locals.db;
   try {
-    const { search, genre, minPrice, maxPrice, page = 1, limit = 5, sort } = req.query;
+    const { search, genre, minPrice, maxPrice, page = 1,limit=5, sort } = req.query;
     let query = 'SELECT * FROM Game WHERE 1=1';
     const params = [];
 
@@ -149,7 +149,7 @@ router.get("/api/search", async (req, res) => {
 });
 
 // POST new game
-router.post('/api/games', (req, res) => {
+router.post('/games', (req, res) => {
   const db = req.app.locals.db;
   const { Title, Description, Rating, Price, Genre, ReleaseDate } = req.body;
 

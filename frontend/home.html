@@ -8,7 +8,10 @@
 </head>
 <body>
   <div class="container">
-    <h1>Welcome to the IGDB</h1>
+    <div class="page-title">
+      <h1>Game Explorer</h1>
+      <p>Discover and track your favorite games</p>
+    </div>
     
     <div class="nav">
       <button onclick="window.location.href='lists.html'" class="secondary">
@@ -17,14 +20,11 @@
       <button onclick="window.location.href='add-game.html'" class="secondary">
         ➕ Add Game
       </button>
-      <button onclick="window.location.href='games.html'" class="secondary">
-        🎮 All Games
-      </button>
       <button onclick="window.location.href='history.html'" class="secondary">
         📜 Search History
       </button>
-      <button onclick="logout()" class="danger">
-        🚪 Logout
+      <button onclick="logout()" class="secondarydanger">
+         Logout
       </button>
     </div>
 
@@ -88,159 +88,154 @@
       });
     }
     function logout() {
-  // Try the explicit logout endpoint first
-  fetch('http://localhost:3001/api/auth/logout', {
-    method: 'POST',
-    credentials: 'include'
-  })
-  .then(response => {
-    // If we get any response (success or error), try to handle it properly
-    if (response.ok) {
-      return response.json().then(data => {
+      // Try the explicit logout endpoint first
+      fetch('http://localhost:3001/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      })
+      .then(response => {
+        // If we get any response (success or error), try to handle it properly
+        if (response.ok) {
+          return response.json().then(data => {
+            localStorage.removeItem('userId');
+            window.location.href = 'index.html';
+          });
+        } else {
+          // If the endpoint doesn't exist or returns an error, we'll just 
+          // clear cookies client-side and redirect
+          console.log('Logout endpoint returned error, falling back to client-side logout');
+          // Clear any local storage
+          localStorage.removeItem('userId');
+          // Redirect to login page
+          window.location.href = 'index.html';
+        }
+      })
+      .catch(err => {
+        // If we can't reach the endpoint at all, just do a client-side logout
+        console.error('Could not reach logout endpoint:', err);
+        // Clear any local storage
         localStorage.removeItem('userId');
+        // Redirect to login page
         window.location.href = 'index.html';
       });
-    } else {
-      // If the endpoint doesn't exist or returns an error, we'll just 
-      // clear cookies client-side and redirect
-      console.log('Logout endpoint returned error, falling back to client-side logout');
-      // Clear any local storage
-      localStorage.removeItem('userId');
-      // Redirect to login page
-      window.location.href = 'index.html';
     }
-  })
-  .catch(err => {
-    // If we can't reach the endpoint at all, just do a client-side logout
-    console.error('Could not reach logout endpoint:', err);
-    // Clear any local storage
-    localStorage.removeItem('userId');
-    // Redirect to login page
-    window.location.href = 'index.html';
-  });
-}
+
+    // Add a new variable to track if we should log the search
+    let shouldLogSearch = false;
 
     function fetchGames() {
-      // Add a new variable to track if we should log the search
-let shouldLogSearch = false;
+      const searchQuery = document.getElementById('searchInput').value;
+      const genre = document.getElementById('genreFilter').value;
+      const minPrice = document.getElementById('minPrice').value;
+      const maxPrice = document.getElementById('maxPrice').value;
+      const sortBy = document.getElementById('sortBy').value;
 
-function fetchGames() {
-  const searchQuery = document.getElementById('searchInput').value;
-  const genre = document.getElementById('genreFilter').value;
-  const minPrice = document.getElementById('minPrice').value;
-  const maxPrice = document.getElementById('maxPrice').value;
-  const sortBy = document.getElementById('sortBy').value;
+      // Create search criteria object
+      const searchCriteria = {
+        search: searchQuery,
+        genre: genre || null,
+        minPrice: minPrice || null,
+        maxPrice: maxPrice || null,
+        sort: sortBy || null,
+        page: currentPage
+      };
 
-  // Create search criteria object
-  const searchCriteria = {
-    search: searchQuery,
-    genre: genre || null,
-    minPrice: minPrice || null,
-    maxPrice: maxPrice || null,
-    sort: sortBy || null,
-    page: currentPage
-  };
+      let query = `?search=${encodeURIComponent(searchQuery)}&page=${currentPage}&limit=${resultsPerPage}`;
+      if (genre) query += `&genre=${encodeURIComponent(genre)}`;
+      if (minPrice) query += `&minPrice=${minPrice}`;
+      if (maxPrice) query += `&maxPrice=${maxPrice}`;
+      if (sortBy) query += `&sort=${sortBy}`;
 
-  let query = `?search=${encodeURIComponent(searchQuery)}&page=${currentPage}&limit=${resultsPerPage}`;
-  if (genre) query += `&genre=${encodeURIComponent(genre)}`;
-  if (minPrice) query += `&minPrice=${minPrice}`;
-  if (maxPrice) query += `&maxPrice=${maxPrice}`;
-  if (sortBy) query += `&sort=${sortBy}`;
+      fetch(`http://localhost:3001/api/games${query}`)
+        .then(response => response.json())
+        .then(data => {
+          const container = document.getElementById('resultsContainer');
+          container.innerHTML = '';
 
-  fetch(`http://localhost:3001/api/games${query}`)
-    .then(response => response.json())
-    .then(data => {
-      const container = document.getElementById('resultsContainer');
-      container.innerHTML = '';
+          if (data.length === 0) {
+            container.innerHTML = '<p>No games found.</p>';
+            return;
+          }
 
-      if (data.length === 0) {
-        container.innerHTML = '<p>No games found.</p>';
-        return;
-      }
+          data.forEach(game => {
+            const gameCard = document.createElement('div');
+            gameCard.className = 'game-card';
+            gameCard.innerHTML = `
+              <h3>${game.Title}</h3>
+              <p><strong>Genre:</strong> ${game.Genre}</p>
+              <p><strong>Price:</strong> ₹${game.Price}</p>
+              <p><strong>Rating:</strong> ${game.Rating}/10</p>
+              <p><strong>Released:</strong> ${new Date(game.ReleaseDate).toDateString()}</p>
+              <p>${game.Description}</p>
+            `;
+            container.appendChild(gameCard);
+          });
 
-      data.forEach(game => {
-        const gameCard = document.createElement('div');
-        gameCard.className = 'game-card';
-        gameCard.innerHTML = `
-          <h3>${game.Title}</h3>
-          <p><strong>Genre:</strong> ${game.Genre}</p>
-          <p><strong>Price:</strong> ₹${game.Price}</p>
-          <p><strong>Rating:</strong> ${game.Rating}/10</p>
-          <p><strong>Released:</strong> ${new Date(game.ReleaseDate).toDateString()}</p>
-          <p>${game.Description}</p>
-        `;
-        container.appendChild(gameCard);
-      });
+          document.getElementById('pageNumber').innerText = currentPage;
+          
+          // Only log search if the flag is set
+          if (shouldLogSearch) {
+            logSearch(searchCriteria);
+            // Reset the flag
+            shouldLogSearch = false;
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching games:', err);
+          document.getElementById('resultsContainer').innerHTML = '<p class="message error">Error loading games. Try again later.</p>';
+        });
+    }
 
-      document.getElementById('pageNumber').innerText = currentPage;
-      
-      // Only log search if the flag is set
-      if (shouldLogSearch) {
-        logSearch(searchCriteria);
-        // Reset the flag
-        shouldLogSearch = false;
-      }
-    })
-    .catch(err => {
-      console.error('Error fetching games:', err);
-      document.getElementById('resultsContainer').innerHTML = '<p class="message error">Error loading games. Try again later.</p>';
+    document.getElementById('searchBtn').addEventListener('click', () => {
+      currentPage = 1;
+      // Set the flag to log this search
+      shouldLogSearch = true;
+      fetchGames();
     });
-}
 
-document.getElementById('searchBtn').addEventListener('click', () => {
-  currentPage = 1;
-  // Set the flag to log this search
-  shouldLogSearch = true;
-  fetchGames();
-});
+    document.getElementById('prevPage').addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        fetchGames();
+      }
+    });
 
-document.getElementById('prevPage').addEventListener('click', () => {
-  if (currentPage > 1) {
-    currentPage--;
-    // Set the flag to log pagination searches
-    shouldLogSearch = true;
-    fetchGames();
-  }
-});
-
-document.getElementById('nextPage').addEventListener('click', () => {
-  currentPage++;
-  // Set the flag to log pagination searches
-  shouldLogSearch = true;
-  fetchGames();
-});
-
-// Initial fetch - Don't log this one
-shouldLogSearch = false;
-fetchGames();}
+    document.getElementById('nextPage').addEventListener('click', () => {
+      currentPage++;
+      fetchGames();
+    });
 
     function logSearch(searchCriteria) {
-  // Log search using the session cookies (no need to check localStorage)
-  fetch('http://localhost:3001/api/users/search-history', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    credentials: 'include', // Important: include cookies for session
-    body: JSON.stringify({ searchCriteria })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (!data.success) {
-      if (data.message === "User not logged in") {
-        console.log("Search not logged: User not logged in");
-      } else {
-        console.warn('Failed to log search history:', data.message);
-      }
+      // Log search using the session cookies (no need to check localStorage)
+      fetch('http://localhost:3001/api/users/search-history', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include', // Important: include cookies for session
+        body: JSON.stringify({ searchCriteria })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.success) {
+          if (data.message === "User not logged in") {
+            console.log("Search not logged: User not logged in");
+          } else {
+            console.warn('Failed to log search history:', data.message);
+          }
+        }
+      })
+      .catch(err => {
+        console.error('Error logging search:', err);
+      });
     }
-  })
-  .catch(err => {
-    console.error('Error logging search:', err);
-  });
-}
 
-    // Initial fetch
+    // Initial fetch - Don't log this one
+    shouldLogSearch = false;
     fetchGames();
   </script>
 </body>
 </html>
+
+
+

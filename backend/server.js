@@ -26,10 +26,10 @@ app.use(session({
 
 // MySQL DB connection
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "santhosh@2006",
-  database: "game_list_db"
+  host: "sql12.freesqldatabase.com",
+  user: "sql12771601",
+  password: "JgBTymPGT4",
+  database: "sql12771601"
 });
 
 db.connect((err) => {
@@ -196,6 +196,22 @@ app.get('/api/auth/status', (req, res) => {
   res.json({ 
     isLoggedIn,
     userId: isLoggedIn ? req.session.userId : null
+  });
+});
+app.post('/games', (req, res) => {
+  const { title, description, rating, price, genre, releaseDate } = req.body;
+
+  const query = `
+      INSERT INTO Game (Title, Description, Rating, Price, Genre, ReleaseDate)
+      VALUES (?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(query, [title, description, rating, price, genre, releaseDate], (err, result) => {
+      if (err) {
+          console.error(err);
+          return res.status(500).json({ error: 'Database insert error' });
+      }
+      res.status(201).json({ message: 'Game added!', gameId: result.insertId });
   });
 });
 

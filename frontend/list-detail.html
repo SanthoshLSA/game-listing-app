@@ -8,13 +8,16 @@
 </head>
 <body>
   <div class="container">
-    <h1 id="listTitle">Loading...</h1>
+    <div class="page-title">
+      <h1 id="listTitle">Loading...</h1>
+      <p>Manage the games in your collection</p>
+    </div>
     
     <div class="nav">
       <a href="lists.html">← Back to My Lists</a>
     </div>
 
-    <div class="card">
+    <div class="section">
       <h2>Add Games to List</h2>
       <div class="controls">
         <input type="text" id="gameSearch" placeholder="Search for a game">
@@ -23,8 +26,10 @@
       <div id="searchResults"></div>
     </div>
 
-    <h2>Games in this List</h2>
-    <div id="gamesContainer">Loading...</div>
+    <div class="section">
+      <h2>Games in this List</h2>
+      <div id="gamesContainer">Loading...</div>
+    </div>
   </div>
 
   <script>
@@ -86,7 +91,6 @@
             span.innerText = gameName;
 
             const delBtn = document.createElement("button");
-            delBtn.className = "delete-btn";
             delBtn.className = "delete-btn";
             delBtn.innerText = "✖";
             delBtn.onclick = () => removeGameFromList(gameName);

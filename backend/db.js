@@ -1,10 +1,10 @@
 const mysql = require('mysql2');
 
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'santhosh@2006', // put your MySQL password here if any
-  database: 'game_list_db',
+  host: 'sql12.freesqldatabase.com',
+  user: 'sql12771601',
+  password: 'JgBTymPGT4', // put your MySQL password here if any
+  database: 'sql12771601',
 });
 
 db.connect((err) => {
