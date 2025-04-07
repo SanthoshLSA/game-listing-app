@@ -2,10 +2,10 @@
 :root {
   --primary: #4ade80; /* Green accent color */
   --primary-hover: #22c55e;
-  --background: #1e1e1e; /* Dark grey background */
-  --card-bg: #1e1e1e; /* Now matches the background */
+  --background: #141414; /* Dark grey background */
+  --card-bg: #181818; /* Now matches the background */
   --text: #e2e2e2; /* Light text for dark background */
-  --text-light: #a3a3a3; /* Muted text */
+  --text-light: #a3a3a3; /* Muted text */ 
   --border: transparent; /* Transparent borders */
   --success: #22c55e; /* Green success */
   --danger: #f56e00; /* Red for errors/danger */
@@ -518,81 +518,4 @@ button.danger {
 
 button.danger:hover {
   background-color: #c82333;
-}
-.game-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 4px;
-  background-color: #f5f5f5;
-  transition: background-color 0.2s;
-}
-
-.game-item:hover {
-  background-color: #e9e9e9;
-}
-
-.game-info {
-  flex: 1;
-}
-
-.game-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.delete-btn {
-  padding: 6px 12px;
-  background-color: #ff4d4d;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.delete-btn:hover {
-  background-color: #e60000;
-}
-
-.delete-btn:disabled {
-  background-color: #ffb3b3;
-  cursor: not-allowed;
-}
-
-.notification {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  padding: 12px 18px;
-  border-radius: 4px;
-  color: white;
-  max-width: 300px;
-  z-index: 1000;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-  animation: slide-in 0.3s ease-out;
-}
-
-.notification.success {
-  background-color: #4CAF50;
-}
-
-.notification.error {
-  background-color: #f44336;
-}
-
-.notification.info {
-  background-color: #2196F3;
-}
-
-.fade-out {
-  opacity: 0;
-  transition: opacity 0.5s;
-}
-
-@keyframes slide-in {
-  from { transform: translateY(100%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
 }
