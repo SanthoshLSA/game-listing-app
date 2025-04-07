@@ -26,11 +26,12 @@ app.use(session({
 
 // MySQL DB connection
 const db = mysql.createConnection({
-  host: "sql12.freesqldatabase.com",
-  user: "sql12771601",
-  password: "JgBTymPGT4",
-  database: "sql12771601"
+  host: "localhost",
+  user: "root",
+  password: "santhosh@2006",
+  database: "game_list_db"
 });
+
 
 db.connect((err) => {
   if (err) {

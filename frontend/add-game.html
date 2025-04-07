@@ -8,6 +8,16 @@
 </head>
 <body>
   <div class="container">
+    <!-- Add this right after the opening <div class="container"> -->
+<div id="unauthorizedMessage" style="display: none;">
+  <div class="page-title">
+    <h1>Unauthorized Access</h1>
+    <p>Sorry, only administrators can access this page.</p>
+  </div>
+  <div class="nav">
+    <a href="home.html">← Back to Home</a>
+  </div>
+</div>
     <div id="adminOnlyContent" style="display: none;">
       <div class="page-title">
         <h1>Manage Games</h1>
@@ -125,8 +135,8 @@
         
         .search-container button {
           padding: 10px 20px;
-          background-color: #4CAF50;
-          color: white;
+          background-color: #4ade80;
+          color: black;
           border: none;
           border-radius: 0 4px 4px 0;
           cursor: pointer;
@@ -194,7 +204,7 @@
         }
         
         .pagination-btn {
-          background-color: #4CAF50;
+          background-color: #4ade80;
           color: white;
           border: none;
           padding: 8px 16px;
