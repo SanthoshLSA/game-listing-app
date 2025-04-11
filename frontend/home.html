@@ -47,8 +47,8 @@
         <option value="Survival">Survival</option>
         <option value="Fighting">Fighting</option>
       </select>
-      <input type="number" id="minPrice" placeholder="Min ₹" style="width: 80px;">
-      <input type="number" id="maxPrice" placeholder="Max ₹" style="width: 80px;">
+      <input type="number" id="minPrice" placeholder="Min $" style="width: 80px;">
+      <input type="number" id="maxPrice" placeholder="Max $" style="width: 80px;">
 
       <select id="sortBy">
         <option value="">Sort by</option>
@@ -173,7 +173,7 @@
             gameCard.innerHTML = `
               <h3>${game.Title}</h3>
               <p><strong>Genre:</strong> ${game.Genre}</p>
-              <p><strong>Price:</strong> ₹${game.Price}</p>
+              <p><strong>Price:</strong> $${game.Price}</p>
               <p><strong>Rating:</strong> ${game.Rating}/10</p>
               <p><strong>Released:</strong> ${new Date(game.ReleaseDate).toDateString()}</p>
               <p>${game.Description}</p>

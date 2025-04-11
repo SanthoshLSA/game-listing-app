@@ -48,8 +48,8 @@
           </div>
           
           <div>
-            <label for="price">Price (₹)</label>
-            <input name="price" id="price" type="number" step="0.01" min="0" placeholder="Price" required>
+            <label for="price">Price ($)</label>
+            <input name="price" id="price" type="number" step="0.01" min="0" placeholder="Price" >
           </div>
           
           <div>
@@ -398,7 +398,7 @@
               <td>${game.GameID}</td>
               <td>${game.Title}</td>
               <td>${game.Genre || '-'}</td>
-              <td>₹${game.Price}</td>
+              <td>$${game.Price}</td>
               <td>${game.Rating || '-'}</td>
               <td>
                 <button class="secondarydanger delete-game-btn" data-id="${game.GameID}" data-title="${game.Title}">Delete</button>
