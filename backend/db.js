@@ -1,9 +1,9 @@
 const mysql = require('mysql2');
 
 const db = mysql.createConnection({
-  host: "localhost",
+  host: "interchange.proxy.rlwy.net",
   user: "root",
-  password: "santhosh@2006",
+  password: "qSDBRCWrXstTUfvLyFMCSjldWIkPGfRo",
   database: "game_list_db"
 });
 
